@@ -1,0 +1,30 @@
+# .gitignore para .NET
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.vscode/
+.vs/
+.DS_Store
+*.swp
+*.swo
+
+# App specific
+appsettings.Development.json
+appsettings.Production.json
+appsettings.Local.json
+
+# Logs
+logs/
+*.log
+
+# NuGet
+packages/
+*.nupkg
+
+# Rider
+.idea/
+
+# VS Code
+.vscode/

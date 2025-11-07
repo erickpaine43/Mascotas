@@ -1,0 +1,6 @@
+@Mascotas_HostAddress = http://localhost:5133
+
+GET {{Mascotas_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
