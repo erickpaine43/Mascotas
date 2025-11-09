@@ -95,6 +95,7 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
 builder.Services.AddScoped<IOrdenService, OrdenService>();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IReviewReminderService, ReviewReminderService>();
 
 // Background Services
 builder.Services.AddHostedService<ReservaCleanupService>();

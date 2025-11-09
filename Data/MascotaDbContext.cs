@@ -18,6 +18,8 @@ namespace Mascotas.Data
         public DbSet<OrdenItem> OrdenItems { get; set; }
         public DbSet<Categoria> Categorias { get; set; }
         public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
+        public DbSet<Review> Reviews { get; set; }
+        public DbSet<ReviewReminder> ReviewReminders { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -125,7 +127,42 @@ namespace Mascotas.Data
 
             });
 
-            
+            modelBuilder.Entity<Review>()
+                .HasOne(r => r.Producto)
+                .WithMany()
+                .HasForeignKey(r => r.ProductoId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Review>()
+                .HasOne(r => r.Cliente)
+                .WithMany()
+                .HasForeignKey(r => r.ClienteId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+
+            modelBuilder.Entity<ReviewReminder>(entity =>
+            {
+                entity.HasOne(r => r.Orden)
+                      .WithMany()
+                      .HasForeignKey(r => r.OrdenId)
+                      .OnDelete(DeleteBehavior.NoAction); // ← EVITA CICLOS
+
+                entity.HasOne(r => r.Cliente)
+                      .WithMany()
+                      .HasForeignKey(r => r.ClienteId)
+                      .OnDelete(DeleteBehavior.NoAction); // ← EVITA CICLOS
+
+                entity.HasOne(r => r.Producto)
+                      .WithMany()
+                      .HasForeignKey(r => r.ProductoId)
+                      .OnDelete(DeleteBehavior.NoAction); // ← EVITA CICLOS
+
+                entity.HasOne(r => r.Animal)
+                      .WithMany()
+                      .HasForeignKey(r => r.AnimalId)
+                      .OnDelete(DeleteBehavior.NoAction); // ← EVITA CICLOS
+            });
+
         }
         
     }

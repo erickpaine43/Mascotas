@@ -4,6 +4,7 @@ using Mascotas.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Mascotas.Migrations
 {
     [DbContext(typeof(MascotaDbContext))]
-    partial class MascotaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251109052101_AgregoValoracionDeApp")]
+    partial class AgregoValoracionDeApp
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -526,9 +529,6 @@ namespace Mascotas.Migrations
                     b.Property<bool>("Activo")
                         .HasColumnType("bit");
 
-                    b.Property<int?>("AnimalId")
-                        .HasColumnType("int");
-
                     b.Property<int>("ClienteId")
                         .HasColumnType("int");
 
@@ -543,8 +543,7 @@ namespace Mascotas.Migrations
                     b.Property<DateTime>("FechaCreacion")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("ProductoId")
-                        .IsRequired()
+                    b.Property<int>("ProductoId")
                         .HasColumnType("int");
 
                     b.Property<int>("Rating")
@@ -552,66 +551,11 @@ namespace Mascotas.Migrations
 
                     b.HasKey("ReviewId");
 
-                    b.HasIndex("AnimalId");
-
                     b.HasIndex("ClienteId");
 
                     b.HasIndex("ProductoId");
 
                     b.ToTable("Reviews");
-                });
-
-            modelBuilder.Entity("Mascotas.Models.ReviewReminder", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("AnimalId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ClienteId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("FechaCreacion")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("NombreItem")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("OrdenId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("PrimerRecordatorioEnviado")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("ProductoId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("ResenaCompletada")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime?>("SegundoRecordatorioEnviado")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("TipoItem")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AnimalId");
-
-                    b.HasIndex("ClienteId");
-
-                    b.HasIndex("OrdenId");
-
-                    b.HasIndex("ProductoId");
-
-                    b.ToTable("ReviewReminders");
                 });
 
             modelBuilder.Entity("Mascotas.Models.Usuario", b =>
@@ -756,10 +700,6 @@ namespace Mascotas.Migrations
 
             modelBuilder.Entity("Mascotas.Models.Review", b =>
                 {
-                    b.HasOne("Mascotas.Models.Animal", "Animal")
-                        .WithMany()
-                        .HasForeignKey("AnimalId");
-
                     b.HasOne("Mascotas.Models.Cliente", "Cliente")
                         .WithMany()
                         .HasForeignKey("ClienteId")
@@ -772,42 +712,7 @@ namespace Mascotas.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Animal");
-
                     b.Navigation("Cliente");
-
-                    b.Navigation("Producto");
-                });
-
-            modelBuilder.Entity("Mascotas.Models.ReviewReminder", b =>
-                {
-                    b.HasOne("Mascotas.Models.Animal", "Animal")
-                        .WithMany()
-                        .HasForeignKey("AnimalId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.HasOne("Mascotas.Models.Cliente", "Cliente")
-                        .WithMany()
-                        .HasForeignKey("ClienteId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("Mascotas.Models.Orden", "Orden")
-                        .WithMany()
-                        .HasForeignKey("OrdenId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("Mascotas.Models.Producto", "Producto")
-                        .WithMany()
-                        .HasForeignKey("ProductoId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.Navigation("Animal");
-
-                    b.Navigation("Cliente");
-
-                    b.Navigation("Orden");
 
                     b.Navigation("Producto");
                 });

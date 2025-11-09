@@ -73,6 +73,27 @@ namespace Mascotas.AutoMapperProfiles
 
             // ========== DTOs PARA CREACIÓN ==========
             CreateMap<AgregarAlCarritoDto, CarritoItem>();
+
+            CreateMap<CreateReviewRequest, Review>()
+                .ForMember(dest => dest.FechaCreacion, opt => opt.MapFrom(src => DateTime.UtcNow))
+                .ForMember(dest => dest.Activo, opt => opt.MapFrom(src => true))
+                .ForMember(dest => dest.FechaActualizacion, opt => opt.Ignore());
+
+            // UpdateReviewRequest -> Review
+            CreateMap<UpdateReviewRequest, Review>()
+                .ForMember(dest => dest.FechaActualizacion, opt => opt.MapFrom(src => DateTime.UtcNow))
+                .ForMember(dest => dest.ReviewId, opt => opt.Ignore())
+                .ForMember(dest => dest.ProductoId, opt => opt.Ignore())
+                .ForMember(dest => dest.ClienteId, opt => opt.Ignore())
+                .ForMember(dest => dest.FechaCreacion, opt => opt.Ignore())
+                .ForMember(dest => dest.Activo, opt => opt.Ignore());
+
+            // Review -> ReviewResponse
+            CreateMap<Review, ReviewResponse>()
+                .ForMember(dest => dest.ClienteNombre, opt => opt.MapFrom(src =>
+                    src.Cliente != null ? src.Cliente.Nombre : "Cliente no disponible"))
+                .ForMember(dest => dest.ProductoNombre, opt => opt.MapFrom(src =>
+                    src.Producto != null ? src.Producto.Nombre : "Producto no disponible"));
         }
     }
 }

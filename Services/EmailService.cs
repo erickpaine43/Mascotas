@@ -114,5 +114,47 @@ Equipo PetStore",
                 return false;
             }
         }
+        public async Task<bool> EnviarRecordatorioResenaAsync(string email, string nombre, string asunto, string mensaje)
+        {
+            try
+            {
+                var smtpSettings = _configuration.GetSection("SmtpSettings");
+
+                using var smtpClient = new SmtpClient(smtpSettings["Host"])
+                {
+                    Port = int.Parse(smtpSettings["Port"] ?? "587"),
+                    Credentials = new NetworkCredential(smtpSettings["Username"], smtpSettings["Password"]),
+                    EnableSsl = true,
+                    DeliveryMethod = SmtpDeliveryMethod.Network,
+                    UseDefaultCredentials = false
+                };
+
+                var mensajeCompleto = $@"Hola {nombre},
+
+{mensaje}
+
+Saludos,
+Equipo Mascotas";
+
+                var mailMessage = new MailMessage
+                {
+                    From = new MailAddress(smtpSettings["FromEmail"] ?? "noreply@mascotas.com", "Mascotas"),
+                    Subject = asunto,
+                    Body = mensajeCompleto,
+                    IsBodyHtml = false
+                };
+
+                mailMessage.To.Add(email);
+                await smtpClient.SendMailAsync(mailMessage);
+
+                _logger.LogInformation($"✅ Email de recordatorio enviado a {email}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"❌ Error enviando email de recordatorio a {email}");
+                return false;
+            }
+        }
     }
 }

@@ -16,6 +16,7 @@ namespace Mascotas.Services
         private readonly IMapper _mapper;
         private readonly ILogger<OrdenService> _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IReviewReminderService _reviewReminderService;
 
         public OrdenService(
             MascotaDbContext context,
@@ -23,7 +24,8 @@ namespace Mascotas.Services
             IReservaService reservaService,
             IMapper mapper,
             ILogger<OrdenService> logger,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            IReviewReminderService reviewReminderService)
         {
             _context = context;
             _stripeService = stripeService;
@@ -31,6 +33,7 @@ namespace Mascotas.Services
             _mapper = mapper;
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
+            _reviewReminderService = reviewReminderService;
         }
 
         public async Task<OrdenDto?> GetOrdenAsync(int id, int usuarioId, string usuarioRol)
@@ -408,6 +411,9 @@ namespace Mascotas.Services
                     }
 
                     await _context.SaveChangesAsync();
+
+                    await _reviewReminderService.ProgramarRecordatorios(ordenId);
+
                     _logger.LogInformation("Orden {OrdenId} marcada como completada", ordenId);
                     return true;
                 }
