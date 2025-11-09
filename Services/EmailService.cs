@@ -65,5 +65,54 @@ Equipo PetStore",
                 return false;
             }
         }
+        // Services/EmailService.cs - agregar este método
+        public async Task<bool> EnviarEmailResetPasswordAsync(string email, string nombre, string codigoReset)
+        {
+            try
+            {
+                var smtpSettings = _configuration.GetSection("SmtpSettings");
+
+                using var smtpClient = new SmtpClient(smtpSettings["Host"])
+                {
+                    Port = int.Parse(smtpSettings["Port"] ?? "587"),
+                    Credentials = new NetworkCredential(smtpSettings["Username"], smtpSettings["Password"]),
+                    EnableSsl = true,
+                    DeliveryMethod = SmtpDeliveryMethod.Network,
+                    UseDefaultCredentials = false
+                };
+
+                var mensaje = new MailMessage
+                {
+                    From = new MailAddress(smtpSettings["FromEmail"] ?? "noreply@petstore.com", "PetStore"),
+                    Subject = "Código para restablecer contraseña - PetStore",
+                    Body = $@"Hola {nombre},
+
+Hemos recibido una solicitud para restablecer la contraseña de tu cuenta.
+
+Tu código de verificación es: {codigoReset}
+
+Ingresa este código en la aplicación junto con tu nueva contraseña.
+
+Este código expirará en 15 minutos.
+
+Si no solicitaste este cambio, ignora este email.
+
+Saludos,
+Equipo PetStore",
+                    IsBodyHtml = false
+                };
+
+                mensaje.To.Add(email);
+                await smtpClient.SendMailAsync(mensaje);
+
+                _logger.LogInformation($"✅ Email de reset enviado a {email}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"❌ Error enviando email de reset a {email}");
+                return false;
+            }
+        }
     }
 }

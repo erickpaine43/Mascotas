@@ -44,7 +44,7 @@ namespace Mascotas.Services
 
         public async Task<(bool success, string errorMessage)> ReservarItemsAsync(Orden orden)
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
+
 
             try
             {
@@ -53,23 +53,31 @@ namespace Mascotas.Services
                     if (item.ProductoId.HasValue)
                     {
                         var producto = await _context.Productos.FindAsync(item.ProductoId.Value);
+                        if (producto == null)
+                        {
+                            return (false, $"Producto no encontrado");
+                        }
+
                         if (producto.StockDisponible < item.Cantidad)
                         {
-                            await transaction.RollbackAsync();
                             return (false, $"Stock insuficiente para {producto.Nombre}");
                         }
 
                         // Reservar stock
                         producto.StockReservado += item.Cantidad;
-                        producto.StockDisponible -= item.Cantidad;
+                        producto.StockDisponible = producto.StockTotal - producto.StockReservado - producto.StockVendido;
                         producto.ExpiracionReserva = orden.FechaExpiracionReserva;
                     }
                     else if (item.AnimalId.HasValue)
                     {
                         var animal = await _context.Animales.FindAsync(item.AnimalId.Value);
+                        if (animal == null)
+                        {
+                            return (false, $"Animal no encontrado");
+                        }
+
                         if (animal.Reservado)
                         {
-                            await transaction.RollbackAsync();
                             return (false, $"Animal {animal.Nombre} ya está reservado");
                         }
 
@@ -81,14 +89,12 @@ namespace Mascotas.Services
 
                 orden.ReservaActiva = true;
                 await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
 
                 _logger.LogInformation($"Reserva creada para orden {orden.NumeroOrden}");
                 return (true, string.Empty);
             }
             catch (Exception ex)
             {
-                await transaction.RollbackAsync();
                 _logger.LogError(ex, $"Error reservando items para orden {orden.NumeroOrden}");
                 return (false, "Error interno al procesar la reserva");
             }

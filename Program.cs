@@ -92,6 +92,9 @@ builder.Services.AddScoped<IStripeService, StripeService>();
 builder.Services.AddScoped<IReservaService, ReservaService>();
 builder.Services.AddScoped<IImportService, ImportService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
+builder.Services.AddScoped<IOrdenService, OrdenService>();
+builder.Services.AddHttpContextAccessor();
 
 // Background Services
 builder.Services.AddHostedService<ReservaCleanupService>();

@@ -17,6 +17,7 @@ namespace Mascotas.Data
         public DbSet<Orden> Ordenes { get; set; }
         public DbSet<OrdenItem> OrdenItems { get; set; }
         public DbSet<Categoria> Categorias { get; set; }
+        public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -110,6 +111,18 @@ namespace Mascotas.Data
             {
                 entity.HasIndex(c => c.Nombre).IsUnique();
                 entity.HasIndex(c => c.Orden);
+            });
+
+            modelBuilder.Entity<Producto>(entity =>
+            {
+                entity.Property(p => p.PrecioOriginal)
+                .HasPrecision(18, 6)
+                .HasColumnType("decimal(18,6)");
+
+                entity.Property(p => p.Rating)
+                .HasPrecision(3, 2)
+                .HasColumnType("decimal(3, 2)");
+
             });
 
             
