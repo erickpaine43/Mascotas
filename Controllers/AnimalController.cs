@@ -195,5 +195,161 @@ namespace PetStore.Controllers
 
             return NoContent();
         }
+        [HttpGet("search")]
+        [AllowAnonymous]
+        public async Task<ActionResult<IEnumerable<AnimalDto>>> SearchAnimales([FromQuery] AnimalSearchParams searchParams)
+        {
+            try
+            {
+                var query = _context.Animales.AsQueryable();
+
+                // 🔍 Búsqueda por texto (Nombre, Especie, Raza, Descripción)
+                if (!string.IsNullOrEmpty(searchParams.SearchTerm))
+                {
+                    var searchTerm = searchParams.SearchTerm.ToLower();
+                    query = query.Where(a =>
+                        a.Nombre.ToLower().Contains(searchTerm) ||
+                        a.Especie.ToLower().Contains(searchTerm) ||
+                        a.Raza.ToLower().Contains(searchTerm) ||
+                        a.Descripcion.ToLower().Contains(searchTerm)
+                    );
+                }
+
+                // 🐾 Filtros por especie y raza
+                if (!string.IsNullOrEmpty(searchParams.Especie))
+                    query = query.Where(a => a.Especie == searchParams.Especie);
+
+                if (!string.IsNullOrEmpty(searchParams.Raza))
+                    query = query.Where(a => a.Raza == searchParams.Raza);
+
+                // ⚥ Filtro por sexo
+                if (!string.IsNullOrEmpty(searchParams.Sexo))
+                    query = query.Where(a => a.Sexo == searchParams.Sexo);
+
+                // ✅ Filtros booleanos
+                if (searchParams.Disponible.HasValue)
+                    query = query.Where(a => a.Disponible == searchParams.Disponible.Value);
+
+                if (searchParams.Vacunado.HasValue)
+                    query = query.Where(a => a.Vacunado == searchParams.Vacunado.Value);
+
+                if (searchParams.Esterilizado.HasValue)
+                    query = query.Where(a => a.Esterilizado == searchParams.Esterilizado.Value);
+
+                if (searchParams.Reservado.HasValue)
+                    query = query.Where(a => a.Reservado == searchParams.Reservado.Value);
+
+                // 💰 Filtro por rango de precio
+                if (searchParams.PrecioMin.HasValue)
+                    query = query.Where(a => a.Precio >= searchParams.PrecioMin.Value);
+
+                if (searchParams.PrecioMax.HasValue)
+                    query = query.Where(a => a.Precio <= searchParams.PrecioMax.Value);
+
+                // 🎂 Filtro por edad (en meses)
+                if (searchParams.EdadMin.HasValue)
+                    query = query.Where(a => a.Edad >= searchParams.EdadMin.Value);
+
+                if (searchParams.EdadMax.HasValue)
+                    query = query.Where(a => a.Edad <= searchParams.EdadMax.Value);
+
+                // 📅 Filtro por fecha de nacimiento
+                if (searchParams.FechaNacimientoDesde.HasValue)
+                    query = query.Where(a => a.FechaNacimiento >= searchParams.FechaNacimientoDesde.Value);
+
+                if (searchParams.FechaNacimientoHasta.HasValue)
+                    query = query.Where(a => a.FechaNacimiento <= searchParams.FechaNacimientoHasta.Value);
+
+                // 📊 Ordenamiento
+                query = searchParams.SortBy?.ToLower() switch
+                {
+                    "precio" => searchParams.SortDescending == true ?
+                        query.OrderByDescending(a => a.Precio) : query.OrderBy(a => a.Precio),
+                    "edad" => searchParams.SortDescending == true ?
+                        query.OrderByDescending(a => a.Edad) : query.OrderBy(a => a.Edad),
+                    "nombre" => searchParams.SortDescending == true ?
+                        query.OrderByDescending(a => a.Nombre) : query.OrderBy(a => a.Nombre),
+                    "fecha" => searchParams.SortDescending == true ?
+                        query.OrderByDescending(a => a.FechaCreacion) : query.OrderBy(a => a.FechaCreacion),
+                    _ => query.OrderByDescending(a => a.FechaCreacion) // Default
+                };
+
+                // 📄 Paginación
+                var totalCount = await query.CountAsync();
+                var animales = await query
+                    .Skip((searchParams.Page - 1) * searchParams.PageSize)
+                    .Take(searchParams.PageSize)
+                    .ToListAsync();
+
+                var animalesDto = animales.Select(a => new AnimalDto
+                {
+                    Id = a.Id,
+                    Nombre = a.Nombre,
+                    Especie = a.Especie,
+                    Raza = a.Raza,
+                    Edad = a.Edad,
+                    Sexo = a.Sexo,
+                    Precio = a.Precio,
+                    Descripcion = a.Descripcion,
+                    Disponible = a.Disponible,
+                    Vacunado = a.Vacunado,
+                    Esterilizado = a.Esterilizado,
+                    FechaNacimiento = a.FechaNacimiento,
+                    FechaCreacion = a.FechaCreacion
+                }).ToList();
+
+                // 📦 Respuesta con metadata de paginación
+                var response = new
+                {
+                    Data = animalesDto,
+                    Pagination = new
+                    {
+                        Page = searchParams.Page,
+                        PageSize = searchParams.PageSize,
+                        TotalCount = totalCount,
+                        TotalPages = (int)Math.Ceiling(totalCount / (double)searchParams.PageSize)
+                    }
+                };
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al buscar animales");
+                return StatusCode(500, "Error interno del servidor");
+            }
+        }
+        [HttpGet("filters/options")]
+        [AllowAnonymous]
+        public async Task<ActionResult<object>> GetFilterOptions()
+        {
+            var especies = await _context.Animales
+                .Where(a => !string.IsNullOrEmpty(a.Especie))
+                .Select(a => a.Especie)
+                .Distinct()
+                .ToListAsync();
+
+            var razas = await _context.Animales
+                .Where(a => !string.IsNullOrEmpty(a.Raza))
+                .Select(a => a.Raza)
+                .Distinct()
+                .ToListAsync();
+
+            var precios = await _context.Animales
+                .Where(a => a.Disponible)
+                .Select(a => a.Precio)
+                .ToListAsync();
+
+            return new
+            {
+                Especies = especies,
+                Razas = razas,
+                Sexos = new List<string> { "Macho", "Hembra" },
+                PrecioMin = precios.Any() ? precios.Min() : 0,
+                PrecioMax = precios.Any() ? precios.Max() : 0,
+                EdadMin = await _context.Animales.MinAsync(a => (int?)a.Edad) ?? 0,
+                EdadMax = await _context.Animales.MaxAsync(a => (int?)a.Edad) ?? 0
+            };
+        }
     }
 }

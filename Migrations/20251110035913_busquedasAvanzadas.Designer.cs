@@ -4,6 +4,7 @@ using Mascotas.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Mascotas.Migrations
 {
     [DbContext(typeof(MascotaDbContext))]
-    partial class MascotaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251110035913_busquedasAvanzadas")]
+    partial class busquedasAvanzadas
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,46 +24,6 @@ namespace Mascotas.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("Mascotas.Models.AlertaPrecio", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("Activa")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime?>("FechaActivacion")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("FechaCreacion")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("Notificado")
-                        .HasColumnType("bit");
-
-                    b.Property<decimal>("PrecioObjetivo")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("ProductoId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UsuarioId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductoId");
-
-                    b.HasIndex("UsuarioId", "Activa");
-
-                    b.ToTable("AlertaPrecios");
-                });
 
             modelBuilder.Entity("Mascotas.Models.Animal", b =>
                 {
@@ -134,39 +97,6 @@ namespace Mascotas.Migrations
                     b.HasIndex("Nombre");
 
                     b.ToTable("Animales");
-                });
-
-            modelBuilder.Entity("Mascotas.Models.BusquedaGuardada", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("FechaCreacion")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("FechaUltimoUso")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ParametrosBusqueda")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("UsuarioId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("VecesUtilizada")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("BusquedaGuardadas");
                 });
 
             modelBuilder.Entity("Mascotas.Models.Carrito", b =>
@@ -335,141 +265,6 @@ namespace Mascotas.Migrations
                     b.HasIndex("UsuarioId");
 
                     b.ToTable("Clientes");
-                });
-
-            modelBuilder.Entity("Mascotas.Models.FiltroGuardado", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("CategoriaFiltro")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<bool>("EsFavorito")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime>("FechaCreacion")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("FechaUltimaRevision")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("FechaUltimoUso")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("MonitorearBajasPrecio")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("MonitorearNuevosProductos")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("MonitorearStock")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("ParametrosBusqueda")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal?>("PorcentajeBajaMinima")
-                        .HasPrecision(5, 2)
-                        .HasColumnType("decimal(5,2)");
-
-                    b.Property<int>("TotalNotificacionesEnviadas")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UsuarioId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("VecesUtilizado")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UsuarioId");
-
-                    b.HasIndex("UsuarioId", "EsFavorito");
-
-                    b.ToTable("FiltroGuardados");
-                });
-
-            modelBuilder.Entity("Mascotas.Models.Notificacion", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("Enviada")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("EnviarEmail")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("EnviarPush")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime>("FechaCreacion")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("FechaEnvio")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("FechaLectura")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("FiltroGuardadoId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("Leida")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Mensaje")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<bool>("MostrarEnWeb")
-                        .HasColumnType("bit");
-
-                    b.Property<int?>("ProductoId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Tipo")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("Titulo")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("UsuarioId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("FiltroGuardadoId");
-
-                    b.HasIndex("ProductoId");
-
-                    b.HasIndex("UsuarioId");
-
-                    b.HasIndex("UsuarioId", "Leida");
-
-                    b.ToTable("Notificaciones");
                 });
 
             modelBuilder.Entity("Mascotas.Models.Orden", b =>
@@ -714,7 +509,7 @@ namespace Mascotas.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("PrecioOriginal")
-                        .HasPrecision(18, 2)
+                        .HasPrecision(18, 6)
                         .HasColumnType("decimal(18,6)");
 
                     b.Property<bool>("Preorden")
@@ -763,50 +558,6 @@ namespace Mascotas.Migrations
                     b.HasIndex("Nombre");
 
                     b.ToTable("Productos");
-                });
-
-            modelBuilder.Entity("Mascotas.Models.ResultadoCambio", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Descripcion")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("FechaDetectado")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("FiltroGuardadoId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal?>("PrecioAnterior")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal?>("PrecioNuevo")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("ProductoId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("TipoCambio")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("FechaDetectado");
-
-                    b.HasIndex("FiltroGuardadoId");
-
-                    b.HasIndex("ProductoId");
-
-                    b.ToTable("ResultadoCambios");
                 });
 
             modelBuilder.Entity("Mascotas.Models.Review", b =>
@@ -960,17 +711,6 @@ namespace Mascotas.Migrations
                     b.ToTable("Usuarios");
                 });
 
-            modelBuilder.Entity("Mascotas.Models.AlertaPrecio", b =>
-                {
-                    b.HasOne("Mascotas.Models.Producto", "Producto")
-                        .WithMany()
-                        .HasForeignKey("ProductoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Producto");
-                });
-
             modelBuilder.Entity("Mascotas.Models.Carrito", b =>
                 {
                     b.HasOne("Mascotas.Models.Cliente", "Cliente")
@@ -1012,23 +752,6 @@ namespace Mascotas.Migrations
                         .HasForeignKey("UsuarioId");
 
                     b.Navigation("Usuario");
-                });
-
-            modelBuilder.Entity("Mascotas.Models.Notificacion", b =>
-                {
-                    b.HasOne("Mascotas.Models.FiltroGuardado", "FiltroGuardado")
-                        .WithMany()
-                        .HasForeignKey("FiltroGuardadoId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("Mascotas.Models.Producto", "Producto")
-                        .WithMany()
-                        .HasForeignKey("ProductoId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("FiltroGuardado");
-
-                    b.Navigation("Producto");
                 });
 
             modelBuilder.Entity("Mascotas.Models.Orden", b =>
@@ -1074,25 +797,6 @@ namespace Mascotas.Migrations
                         .IsRequired();
 
                     b.Navigation("Categoria");
-                });
-
-            modelBuilder.Entity("Mascotas.Models.ResultadoCambio", b =>
-                {
-                    b.HasOne("Mascotas.Models.FiltroGuardado", "FiltroGuardado")
-                        .WithMany()
-                        .HasForeignKey("FiltroGuardadoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Mascotas.Models.Producto", "Producto")
-                        .WithMany()
-                        .HasForeignKey("ProductoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("FiltroGuardado");
-
-                    b.Navigation("Producto");
                 });
 
             modelBuilder.Entity("Mascotas.Models.Review", b =>

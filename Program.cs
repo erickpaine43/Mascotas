@@ -96,6 +96,12 @@ builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
 builder.Services.AddScoped<IOrdenService, OrdenService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IReviewReminderService, ReviewReminderService>();
+builder.Services.AddScoped<IFiltroGuardadoService, FiltroGuardadoService>();
+builder.Services.AddScoped<IAlertaPrecioService, AlertaPrecioService>();
+builder.Services.AddScoped<IBusquedaAvanzadaService, BusquedaAvanzadaService>();
+builder.Services.AddScoped<IMonitorBusquedasService, MonitorBusquedasService>();
+builder.Services.AddScoped<INotificacionService, NotificacionService>();
+builder.Services.AddHostedService<MonitorBackgroundService>();
 
 // Background Services
 builder.Services.AddHostedService<ReservaCleanupService>();

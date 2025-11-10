@@ -54,5 +54,19 @@ namespace Mascotas.Models
 
         public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
         public DateTime? FechaActualizacion { get; set; }
+        public bool EntregaRapida { get; set; } = false;
+        public bool RetiroEnTienda { get; set; } = true;
+        public bool EnvioGratis { get; set; } = false;
+        public bool Preorden { get; set; } = false;
+        public int? DiasEntrega { get; set; } // 1, 2, 3, etc.
+        public string? EspecieDestinada { get; set; } // Perro, Gato, etc.
+        public string? RazaDestinada { get; set; } // Labrador, Siames, etc.
+        public string? EtapaVida { get; set; } // Cachorro, Adulto, Senior
+        public string? NecesidadesEspeciales { get; set; } // Esterilizado, Pelo Largo, etc.
+        public string? Material { get; set; } // Plástico, Tela, Metal
+        public string? Color { get; set; }
+        public string? Dimensiones { get; set; } // "10x5x15 cm"
+        public string? TipoTratamiento { get; set; } // Desparasitación, Vacuna, etc.
+        public string? DuracionTratamiento { get; set; } // "30 días", "6 meses"
     }
 }

@@ -20,6 +20,14 @@ namespace Mascotas.Data
         public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
         public DbSet<Review> Reviews { get; set; }
         public DbSet<ReviewReminder> ReviewReminders { get; set; }
+        public DbSet<AlertaPrecio> AlertaPrecios { get; set; }
+        public DbSet<BusquedaGuardada> BusquedaGuardadas { get; set; }
+        public DbSet<FiltroGuardado> FiltroGuardados { get; set; }
+        public DbSet<ResultadoCambio> ResultadoCambios { get; set; }
+
+        public DbSet<Notificacion> Notificaciones { get; set; }
+        
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -162,8 +170,80 @@ namespace Mascotas.Data
                       .HasForeignKey(r => r.AnimalId)
                       .OnDelete(DeleteBehavior.NoAction); // ← EVITA CICLOS
             });
+            // Configurar AlertaPrecio
+            modelBuilder.Entity<AlertaPrecio>()
+                .Property(a => a.PrecioObjetivo)
+                .HasPrecision(18, 2); // 18 dígitos totales, 2 decimales
 
+            // Configurar FiltroGuardado
+            modelBuilder.Entity<FiltroGuardado>()
+                .Property(f => f.PorcentajeBajaMinima)
+                .HasPrecision(5, 2); // 5 dígitos totales, 2 decimales (ej: 100.00%)
+
+            // Configurar ResultadoCambio
+            modelBuilder.Entity<ResultadoCambio>()
+                .Property(r => r.PrecioAnterior)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<ResultadoCambio>()
+                .Property(r => r.PrecioNuevo)
+                .HasPrecision(18, 2);
+
+            // ✅ CONFIGURACIONES ADICIONALES RECOMENDADAS
+
+            // Configurar Producto (si tienes propiedades decimales)
+            modelBuilder.Entity<Producto>()
+                .Property(p => p.Precio)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Producto>()
+                .Property(p => p.PrecioOriginal)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Producto>()
+                .Property(p => p.Descuento)
+                .HasPrecision(5, 2);
+
+            modelBuilder.Entity<Producto>()
+                .Property(p => p.Rating)
+                .HasPrecision(3, 2); // Para ratings como 4.75
+
+            // Configurar relaciones opcionales si es necesario
+            modelBuilder.Entity<Notificacion>()
+                .HasOne(n => n.Producto)
+                .WithMany()
+                .HasForeignKey(n => n.ProductoId)
+                .OnDelete(DeleteBehavior.SetNull); // Opcional: si eliminas producto, notificación queda
+
+            modelBuilder.Entity<Notificacion>()
+                .HasOne(n => n.FiltroGuardado)
+                .WithMany()
+                .HasForeignKey(n => n.FiltroGuardadoId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Configurar índices para mejor performance
+            modelBuilder.Entity<FiltroGuardado>()
+                .HasIndex(f => f.UsuarioId);
+
+            modelBuilder.Entity<FiltroGuardado>()
+                .HasIndex(f => new { f.UsuarioId, f.EsFavorito });
+
+            modelBuilder.Entity<Notificacion>()
+                .HasIndex(n => n.UsuarioId);
+
+            modelBuilder.Entity<Notificacion>()
+                .HasIndex(n => new { n.UsuarioId, n.Leida });
+
+            modelBuilder.Entity<AlertaPrecio>()
+                .HasIndex(a => new { a.UsuarioId, a.Activa });
+
+            modelBuilder.Entity<ResultadoCambio>()
+                .HasIndex(r => r.FiltroGuardadoId);
+
+            modelBuilder.Entity<ResultadoCambio>()
+                .HasIndex(r => r.FechaDetectado);
         }
+
+    }
         
     }
-}
