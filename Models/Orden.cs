@@ -25,6 +25,8 @@
         // Navigation properties
         public Cliente Cliente { get; set; } = null!;
         public List<OrdenItem> Items { get; set; } = new();
+        public List<OrderTracking> TrackingHistory { get; set; } = new();
+        public string? TrackingNumber { get; set; }
 
     }
 }

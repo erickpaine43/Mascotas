@@ -26,7 +26,8 @@ namespace Mascotas.Data
         public DbSet<ResultadoCambio> ResultadoCambios { get; set; }
 
         public DbSet<Notificacion> Notificaciones { get; set; }
-        
+        public DbSet<OrderTracking> OrderTrackings { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -242,6 +243,31 @@ namespace Mascotas.Data
 
             modelBuilder.Entity<ResultadoCambio>()
                 .HasIndex(r => r.FechaDetectado);
+
+            modelBuilder.Entity<OrderTracking>(entity =>
+            {
+                entity.HasKey(ot => ot.Id);
+
+                entity.HasOne(ot => ot.Orden)
+                      .WithMany(o => o.TrackingHistory)
+                      .HasForeignKey(ot => ot.OrdenId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<Orden>(entity =>
+            {
+                entity.HasKey(o => o.Id);
+
+                entity.HasMany(o => o.TrackingHistory)
+                      .WithOne(ot => ot.Orden)
+                      .HasForeignKey(ot => ot.OrdenId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                // Relación con Cliente (si no está configurada)
+                entity.HasOne(o => o.Cliente)
+                      .WithMany()
+                      .HasForeignKey(o => o.ClienteId);
+            });
         }
 
     }

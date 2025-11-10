@@ -102,6 +102,8 @@ builder.Services.AddScoped<IBusquedaAvanzadaService, BusquedaAvanzadaService>();
 builder.Services.AddScoped<IMonitorBusquedasService, MonitorBusquedasService>();
 builder.Services.AddScoped<INotificacionService, NotificacionService>();
 builder.Services.AddHostedService<MonitorBackgroundService>();
+builder.Services.AddScoped<IOrderTrackingService, OrderTrackingService>();
+builder.Services.AddScoped<IOrdenNotificacionService, OrdenNotificacionService>();
 
 // Background Services
 builder.Services.AddHostedService<ReservaCleanupService>();
