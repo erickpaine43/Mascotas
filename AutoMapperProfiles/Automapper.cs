@@ -94,6 +94,14 @@ namespace Mascotas.AutoMapperProfiles
                     src.Cliente != null ? src.Cliente.Nombre : "Cliente no disponible"))
                 .ForMember(dest => dest.ProductoNombre, opt => opt.MapFrom(src =>
                     src.Producto != null ? src.Producto.Nombre : "Producto no disponible"));
+
+            CreateMap<PerfilUsuario, PerfilUsuarioDto>();
+            CreateMap<Direccion, DireccionDto>();
+            CreateMap<MascotaCliente, MascotaClienteDto>();
+            CreateMap<PreferenciasUsuario, PreferenciasUsuarioDto>();
+            CreateMap<CrearDireccionDto, Direccion>();
+            CreateMap<CrearMascotaClienteDto, MascotaCliente>();
+            CreateMap<PreferenciasUsuarioDto, PreferenciasUsuario>();
         }
     }
 }

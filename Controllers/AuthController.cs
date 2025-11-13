@@ -82,7 +82,8 @@ namespace PetStore.Controllers
             });
         }
 
-        
+
+        // En AuthController - Modificar el método RegistroPublico
         [HttpPost("registro-publico")]
         [AllowAnonymous]
         public async Task<ActionResult> RegistroPublico(RegistroPublicoDto registroDto)
@@ -127,6 +128,14 @@ namespace PetStore.Controllers
                 };
 
                 _context.Clientes.Add(cliente);
+
+                // 3. 🆕 CREAR PERFIL AUTOMÁTICAMENTE
+                var perfilService = new PerfilService(_context,
+                    HttpContext.RequestServices.GetRequiredService<IMapper>(),
+                    HttpContext.RequestServices.GetRequiredService<ILogger<PerfilService>>());
+
+                await perfilService.CrearPerfilAutomaticoAsync(usuario.Id);
+
                 await _context.SaveChangesAsync();
 
                 // Enviar email de verificación

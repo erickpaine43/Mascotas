@@ -27,6 +27,10 @@ namespace Mascotas.Data
 
         public DbSet<Notificacion> Notificaciones { get; set; }
         public DbSet<OrderTracking> OrderTrackings { get; set; }
+        public DbSet<PerfilUsuario> PerfilesUsuarios { get; set; }
+        public DbSet<Direccion> Direcciones { get; set; }
+        public DbSet<MascotaCliente> MascotasClientes { get; set; }
+        public DbSet<PreferenciasUsuario> PreferenciasUsuarios { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -263,10 +267,67 @@ namespace Mascotas.Data
                       .HasForeignKey(ot => ot.OrdenId)
                       .OnDelete(DeleteBehavior.Cascade);
 
-                // Relación con Cliente (si no está configurada)
+                
                 entity.HasOne(o => o.Cliente)
                       .WithMany()
                       .HasForeignKey(o => o.ClienteId);
+            });
+            
+            modelBuilder.Entity<PerfilUsuario>(entity =>
+            {
+                entity.HasKey(p => p.Id);
+
+                
+                entity.HasOne(p => p.Usuario)
+                      .WithOne()
+                      .HasForeignKey<PerfilUsuario>(p => p.UsuarioId)
+                      .OnDelete(DeleteBehavior.Cascade); 
+
+                entity.HasIndex(p => p.UsuarioId).IsUnique(); 
+            });
+
+            modelBuilder.Entity<Direccion>(entity =>
+            {
+                entity.HasKey(d => d.Id);
+
+                
+                entity.HasOne(d => d.PerfilUsuario)
+                      .WithMany(p => p.Direcciones)
+                      .HasForeignKey(d => d.PerfilUsuarioId)
+                      .OnDelete(DeleteBehavior.Cascade); 
+
+                entity.HasIndex(d => d.PerfilUsuarioId);
+                entity.HasIndex(d => new { d.PerfilUsuarioId, d.EsPrincipal });
+            });
+
+            modelBuilder.Entity<MascotaCliente>(entity =>
+            {
+                entity.HasKey(m => m.Id);
+
+                
+                entity.HasOne(m => m.PerfilUsuario)
+                      .WithMany(p => p.Mascotas)
+                      .HasForeignKey(m => m.PerfilUsuarioId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.Property(m => m.Peso)
+                      .HasPrecision(8, 3);
+
+                entity.HasIndex(m => m.PerfilUsuarioId);
+                entity.HasIndex(m => m.Especie);
+            });
+
+            modelBuilder.Entity<PreferenciasUsuario>(entity =>
+            {
+                entity.HasKey(p => p.Id);
+
+                
+                entity.HasOne(p => p.PerfilUsuario)
+                      .WithOne(perfil => perfil.Preferencias)
+                      .HasForeignKey<PreferenciasUsuario>(p => p.PerfilUsuarioId)
+                      .OnDelete(DeleteBehavior.Cascade); 
+
+                entity.HasIndex(p => p.PerfilUsuarioId).IsUnique();
             });
         }
 
