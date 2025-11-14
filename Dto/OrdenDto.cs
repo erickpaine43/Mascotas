@@ -17,5 +17,12 @@
         public DateTime FechaCreacion { get; set; }
         public ClienteDto Cliente { get; set; } = new ClienteDto();
         public List<OrdenItemDto> Items { get; set; } = new();
+        public decimal CostoEnvio { get; set; }
+        public int MetodoEnvioId { get; set; }
+        public string? MetodoEnvioNombre { get; set; }
+        public int DireccionEnvioId { get; set; }
+        public string? DireccionCompleta { get; set; }
+        public int DiasEntregaEstimados { get; set; }
+        public DateTime? FechaEstimadaEntrega { get; set; }
     }
 }

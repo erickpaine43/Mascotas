@@ -17,6 +17,7 @@ namespace Mascotas.Services
         private readonly ILogger<OrdenService> _logger;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IReviewReminderService _reviewReminderService;
+        private readonly ICalculoEnvioService _calculoEnvioService;
 
         public OrdenService(
             MascotaDbContext context,
@@ -25,7 +26,8 @@ namespace Mascotas.Services
             IMapper mapper,
             ILogger<OrdenService> logger,
             IHttpContextAccessor httpContextAccessor,
-            IReviewReminderService reviewReminderService)
+            IReviewReminderService reviewReminderService,
+            ICalculoEnvioService calculoEnvioService)
         {
             _context = context;
             _stripeService = stripeService;
@@ -34,6 +36,58 @@ namespace Mascotas.Services
             _logger = logger;
             _httpContextAccessor = httpContextAccessor;
             _reviewReminderService = reviewReminderService;
+            _calculoEnvioService = calculoEnvioService;
+        }
+
+        public async Task<CalculoEnvioResult> CalcularEnvioParaOrdenAsync(int direccionId, int metodoEnvioId, List<CreateOrdenItemDto> items)
+        {
+            try
+            {
+                var itemsCalculo = new List<ItemCalculoEnvio>();
+
+                foreach (var item in items)
+                {
+                    // Obtener producto para peso y fragilidad
+                    if (item.ProductoId.HasValue)
+                    {
+                        var producto = await _context.Productos.FindAsync(item.ProductoId.Value);
+                        if (producto != null)
+                        {
+                            itemsCalculo.Add(new ItemCalculoEnvio
+                            {
+                                ProductoId = producto.Id,
+                                Cantidad = item.Cantidad,
+                                Peso = producto.Peso,
+                                EsFragil = producto.EsFragil,
+                                PrecioUnitario = item.PrecioUnitario
+                            });
+                        }
+                    }
+                    // Para animales, usar peso estimado
+                    else if (item.AnimalId.HasValue)
+                    {
+                        var animal = await _context.Animales.FindAsync(item.AnimalId.Value);
+                        if (animal != null)
+                        {
+                            itemsCalculo.Add(new ItemCalculoEnvio
+                            {
+                                ProductoId = 0, // Indicador de animal
+                                Cantidad = 1,
+                                Peso = 5.0m, // Peso estimado para envío de animales
+                                EsFragil = true, // Los animales siempre son frágiles
+                                PrecioUnitario = item.PrecioUnitario
+                            });
+                        }
+                    }
+                }
+
+                return await _calculoEnvioService.CalcularEnvioAsync(direccionId, itemsCalculo, metodoEnvioId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error calculando envío para orden");
+                throw;
+            }
         }
 
         public async Task<OrdenDto?> GetOrdenAsync(int id, int usuarioId, string usuarioRol)
@@ -245,7 +299,31 @@ namespace Mascotas.Services
                 if (createOrdenDto.Items == null || !createOrdenDto.Items.Any())
                     throw new InvalidOperationException("La orden debe tener al menos un item");
 
-                // 3. Crear orden
+                // 3. NUEVO: Calcular costo de envío si no es retiro en tienda
+                decimal costoEnvio = 0;
+                int? diasEntrega = null;
+                DateTime? fechaEstimadaEntrega = null;
+
+                if (createOrdenDto.MetodoEnvioId > 0 && !createOrdenDto.EsRetiroEnTienda)
+                {
+                    var metodoEnvio = await _context.MetodoEnvios.FindAsync(createOrdenDto.MetodoEnvioId);
+                    if (metodoEnvio == null || !metodoEnvio.Activo)
+                        throw new InvalidOperationException("Método de envío no disponible");
+
+                    if (!metodoEnvio.RetiroEnLocal && createOrdenDto.DireccionEnvioId > 0)
+                    {
+                        var resultadoEnvio = await CalcularEnvioParaOrdenAsync(
+                            createOrdenDto.DireccionEnvioId,
+                            createOrdenDto.MetodoEnvioId,
+                            createOrdenDto.Items);
+
+                        costoEnvio = resultadoEnvio.CostoEnvio;
+                        diasEntrega = resultadoEnvio.DiasEntrega;
+                        fechaEstimadaEntrega = resultadoEnvio.FechaEstimada;
+                    }
+                }
+
+                // 4. Crear orden
                 var orden = new Orden
                 {
                     NumeroOrden = GenerateOrderNumber(),
@@ -255,10 +333,16 @@ namespace Mascotas.Services
                     Comentarios = createOrdenDto.Comentarios,
                     FechaCreacion = DateTime.UtcNow,
                     FechaExpiracionReserva = DateTime.UtcNow.AddMinutes(15),
-                    ReservaActiva = false
+                    ReservaActiva = false,
+                    // NUEVOS CAMPOS DE ENVÍO
+                    CostoEnvio = costoEnvio,
+                    MetodoEnvioId = createOrdenDto.MetodoEnvioId,
+                    DireccionEnvioId = createOrdenDto.DireccionEnvioId,
+                    DiasEntregaEstimados = diasEntrega,
+                    FechaEstimadaEntrega = fechaEstimadaEntrega
                 };
 
-                // 4. Calcular items y totales
+                // 5. Calcular items y totales (INCLUYENDO ENVÍO)
                 decimal subtotal = 0;
                 bool tieneItemsValidos = false;
 
@@ -314,15 +398,16 @@ namespace Mascotas.Services
                 if (!tieneItemsValidos)
                     throw new InvalidOperationException("La orden debe contener al menos un producto o animal válido");
 
+                // MODIFICADO: Calcular total INCLUYENDO ENVÍO
                 orden.Subtotal = subtotal;
                 orden.Impuesto = subtotal * 0.16m;
-                orden.Total = orden.Subtotal + orden.Impuesto;
+                orden.Total = orden.Subtotal + orden.Impuesto + orden.CostoEnvio; // ENVÍO INCLUIDO
 
-                // 5. Guardar orden
+                // 6. Guardar orden
                 _context.Ordenes.Add(orden);
                 await _context.SaveChangesAsync();
 
-                // 6. Reservar items
+                // 7. Reservar items
                 var (reservaExitosa, mensajeError) = await _reservaService.ReservarItemsAsync(orden);
                 if (!reservaExitosa)
                 {
@@ -330,17 +415,17 @@ namespace Mascotas.Services
                     throw new InvalidOperationException(mensajeError);
                 }
 
-                // 7. Crear checkout de Stripe
+                // 8. Crear checkout de Stripe (INCLUYENDO ENVÍO EN EL TOTAL)
                 var httpContext = _httpContextAccessor.HttpContext;
                 var successUrl = $"{httpContext.Request.Scheme}://{httpContext.Request.Host}/api/ordenes/confirmar-pago?session_id={{CHECKOUT_SESSION_ID}}";
                 var cancelUrl = $"{httpContext.Request.Scheme}://{httpContext.Request.Host}/checkout/cancel";
 
                 var sessionUrl = await _stripeService.CreateCheckoutSessionAsync(orden, successUrl, cancelUrl);
 
-                // 8. Commit transaction
+                // 9. Commit transaction
                 await transaction.CommitAsync();
 
-                // 9. Cargar orden completa para DTO
+                // 10. Cargar orden completa para DTO (INCLUYENDO DATOS DE ENVÍO)
                 var ordenCompleta = await _context.Ordenes
                     .Include(o => o.Cliente)
                     .Include(o => o.Items)
@@ -348,6 +433,8 @@ namespace Mascotas.Services
                     .Include(o => o.Items)
                         .ThenInclude(i => i.Producto)
                             .ThenInclude(p => p.Categoria)
+                    .Include(o => o.MetodoEnvio) // NUEVO
+                    .Include(o => o.DireccionEnvio) // NUEVO
                     .FirstOrDefaultAsync(o => o.Id == orden.Id);
 
                 var ordenDto = _mapper.Map<OrdenDto>(ordenCompleta);

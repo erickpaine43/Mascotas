@@ -68,5 +68,10 @@ namespace Mascotas.Models
         public string? Dimensiones { get; set; } // "10x5x15 cm"
         public string? TipoTratamiento { get; set; } // Desparasitación, Vacuna, etc.
         public string? DuracionTratamiento { get; set; } // "30 días", "6 meses"
+        public decimal Peso { get; set; } = 0.5m;
+        public decimal Alto { get; set; } = 10;
+        public decimal Ancho { get; set; } = 10;
+        public decimal Largo { get; set; } = 10;
+        public bool EsFragil { get; set; }
     }
 }

@@ -27,6 +27,15 @@
         public List<OrdenItem> Items { get; set; } = new();
         public List<OrderTracking> TrackingHistory { get; set; } = new();
         public string? TrackingNumber { get; set; }
+        public decimal CostoEnvio { get; set; }
+        public int? MetodoEnvioId { get; set; }
+        public int? DireccionEnvioId { get; set; }
+        public int? DiasEntregaEstimados { get; set; }
+        public DateTime? FechaEstimadaEntrega { get; set; }
+
+        // NUEVAS RELACIONES
+        public virtual MetodoEnvio MetodoEnvio { get; set; } = null!;
+        public virtual Direccion DireccionEnvio { get; set; } = null!;
 
     }
 }

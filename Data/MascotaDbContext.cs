@@ -31,6 +31,8 @@ namespace Mascotas.Data
         public DbSet<Direccion> Direcciones { get; set; }
         public DbSet<MascotaCliente> MascotasClientes { get; set; }
         public DbSet<PreferenciasUsuario> PreferenciasUsuarios { get; set; }
+        public DbSet<ZonaEnvio> ZonaEnvios { get; set; }
+        public DbSet<MetodoEnvio> MetodoEnvios { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -328,6 +330,78 @@ namespace Mascotas.Data
                       .OnDelete(DeleteBehavior.Cascade); 
 
                 entity.HasIndex(p => p.PerfilUsuarioId).IsUnique();
+            });
+
+            modelBuilder.Entity<Orden>()
+                   .HasOne(o => o.MetodoEnvio)
+                   .WithMany()
+                   .HasForeignKey(o => o.MetodoEnvioId)
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Orden>()
+                .HasOne(o => o.DireccionEnvio)
+                .WithMany()
+                .HasForeignKey(o => o.DireccionEnvioId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Orden>(entity =>
+            {
+                entity.Property(e => e.CostoEnvio)
+                    .HasPrecision(18, 2);
+            });
+
+            modelBuilder.Entity<Producto>(entity =>
+            {
+                entity.Property(e => e.Peso)
+                    .HasPrecision(10, 3); // 10 dígitos, 3 decimales (ej: 9999.999 kg)
+                entity.Property(e => e.Alto)
+                    .HasPrecision(8, 2);  // 8 dígitos, 2 decimales (ej: 9999.99 cm)
+                entity.Property(e => e.Ancho)
+                    .HasPrecision(8, 2);
+                entity.Property(e => e.Largo)
+                    .HasPrecision(8, 2);
+            });
+
+            modelBuilder.Entity<ZonaEnvio>(entity =>
+            {
+                entity.Property(e => e.TarifaBaseEstandar)
+                    .HasPrecision(10, 2);
+                entity.Property(e => e.TarifaBaseExpress)
+                    .HasPrecision(10, 2);
+                entity.Property(e => e.CostoPorKiloExtra)
+                    .HasPrecision(10, 2);
+                entity.Property(e => e.RecargoFragil)
+                    .HasPrecision(10, 2);
+                entity.Property(e => e.MontoMinimoEnvioGratis)
+                    .HasPrecision(10, 2);
+            });
+
+            // También configura los decimales existentes que puedan tener advertencias
+            modelBuilder.Entity<Orden>(entity =>
+            {
+                entity.Property(e => e.Subtotal).HasPrecision(18, 2);
+                entity.Property(e => e.Impuesto).HasPrecision(18, 2);
+                entity.Property(e => e.Descuento).HasPrecision(18, 2);
+                entity.Property(e => e.Total).HasPrecision(18, 2);
+            });
+
+            modelBuilder.Entity<Producto>(entity =>
+            {
+                entity.Property(e => e.Precio).HasPrecision(18, 2);
+                entity.Property(e => e.PrecioOriginal).HasPrecision(18, 2);
+                entity.Property(e => e.Descuento).HasPrecision(5, 2);
+                entity.Property(e => e.Rating).HasPrecision(3, 2);
+            });
+
+            modelBuilder.Entity<OrdenItem>(entity =>
+            {
+                entity.Property(e => e.PrecioUnitario).HasPrecision(18, 2);
+                entity.Property(e => e.Subtotal).HasPrecision(18, 2);
+            });
+            modelBuilder.Entity<Orden>(entity =>
+            {
+                entity.Property(e => e.DireccionEnvioId).IsRequired(false);
+                entity.Property(e => e.MetodoEnvioId).IsRequired(false);
             });
         }
 

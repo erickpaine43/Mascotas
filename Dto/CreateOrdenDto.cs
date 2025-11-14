@@ -11,5 +11,10 @@ namespace Mascotas.Dto
 
         [Required]
         public List<CreateOrdenItemDto> Items { get; set; } = new();
+        public int DireccionEnvioId { get; set; }
+        public int MetodoEnvioId { get; set; }
+        public decimal CostoEnvio { get; set; }
+        public int DiasEntregaEstimados { get; set; }
+        public bool EsRetiroEnTienda { get; set; }
     }
 }

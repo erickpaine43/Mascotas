@@ -9,5 +9,6 @@ namespace Mascotas.Dto
 
         [Range(1, int.MaxValue)]
         public int Cantidad { get; set; } = 1;
+        public decimal PrecioUnitario { get; set; }
     }
 }
