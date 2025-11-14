@@ -106,6 +106,7 @@ builder.Services.AddScoped<IOrderTrackingService, OrderTrackingService>();
 builder.Services.AddScoped<IOrdenNotificacionService, OrdenNotificacionService>();
 builder.Services.AddScoped<IPerfilService, PerfilService>();
 builder.Services.AddScoped<ICalculoEnvioService, CalculoEnvioService>();
+builder.Services.AddScoped<IReporteService, ReporteService>();
 
 // Background Services
 builder.Services.AddHostedService<ReservaCleanupService>();
