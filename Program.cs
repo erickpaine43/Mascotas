@@ -65,7 +65,9 @@ builder.Services.AddSwaggerGen(c =>
 
 // JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
-var secretKey = jwtSettings["SecretKey"] ?? "PetStoreSecretKey2024!";
+var secretKey = jwtSettings["SecretKey"];
+if (string.IsNullOrWhiteSpace(secretKey))
+    throw new InvalidOperationException("JwtSettings:SecretKey is not configured. Set it with dotnet user-secrets or an environment variable.");
 
 builder.Services.AddAuthentication(options =>
 {
